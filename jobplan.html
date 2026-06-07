@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Junior Dev — 7 Tage Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --border: #2a2a2a;
+    --accent: #c8ff00;
+    --accent2: #ff6b35;
+    --text: #e8e8e8;
+    --muted: #666;
+    --done: #1a2a00;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  .noise {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.5;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    position: relative; z-index: 1;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 32px;
+    margin-bottom: 48px;
+  }
+
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tag::before { content: ''; display: block; width: 24px; height: 1px; background: var(--accent); }
+
+  h1 {
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    margin-top: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+
+  .progress-bar {
+    margin-top: 24px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  .progress-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .progress-label span { color: var(--accent); }
+
+  /* DAYS GRID */
+  .days-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .day-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .day-block:hover { border-color: #444; }
+  .day-block.active { border-color: var(--accent); }
+
+  .day-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 24px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .day-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 48px;
+  }
+
+  .day-title {
+    flex: 1;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.01em;
+  }
+
+  .day-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    background: var(--border);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .day-badge.urgent { background: #2a0a00; color: var(--accent2); }
+  .day-badge.key { background: #1a2a00; color: var(--accent); }
+
+  .day-chevron {
+    font-size: 12px;
+    color: var(--muted);
+    transition: transform 0.25s;
+  }
+  .day-block.open .day-chevron { transform: rotate(180deg); }
+
+  .day-body {
+    display: none;
+    padding: 0 24px 24px;
+    border-top: 1px solid var(--border);
+  }
+  .day-block.open .day-body { display: block; }
+
+  .task-list {
+    list-style: none;
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 3px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .task:hover { border-color: #3a3a3a; }
+  .task.checked {
+    background: var(--done);
+    border-color: #3a4a00;
+    opacity: 0.7;
+  }
+
+  .task-check {
+    width: 16px; height: 16px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    color: var(--accent);
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .task.checked .task-check {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+  }
+
+  .task-text {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    font-family: 'Space Mono', monospace;
+  }
+  .task.checked .task-text { text-decoration: line-through; color: var(--muted); }
+
+  .task-note {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 3px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 400;
+  }
+
+  /* TIP BOXES */
+  .tip {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-left: 2px solid var(--accent2);
+    background: #1a1008;
+    font-size: 0.82rem;
+    color: #cc9977;
+    font-family: 'Space Mono', monospace;
+    line-height: 1.6;
+  }
+  .tip strong { color: var(--accent2); }
+
+  /* RESOURCES SECTION */
+  .section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 40px 0 16px;
+  }
+
+  .resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+  }
+
+  .resource-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px;
+    text-decoration: none;
+    color: var(--text);
+    transition: border-color 0.2s, transform 0.15s;
+    display: block;
+  }
+  .resource-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  .resource-card .rc-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .resource-card .rc-name { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
+  .resource-card .rc-desc { font-size: 0.78rem; color: var(--muted); font-family: 'Space Mono', monospace; line-height: 1.5; }
+
+  /* TEMPLATE SECTION */
+  .template-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    margin-top: 10px;
+  }
+  .template-box h3 { font-size: 0.9rem; margin-bottom: 12px; color: var(--accent); }
+  .template-box pre {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: #aaa;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .copy-btn {
+    margin-top: 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+
+  <header>
+    <div class="tag">Junior Developer · Deutschland · 7 Tage</div>
+    <h1>DEIN <span>JOB</span><br>ACTION PLAN</h1>
+    <p class="subtitle">// Erstellt: Juni 2026 · Deadline: in 7 Tagen</p>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label">Fortschritt: <span id="progressText">0 / 0</span> Aufgaben erledigt</div>
+  </header>
+
+  <div class="days-grid" id="daysGrid">
+
+    <!-- TAG 1 -->
+    <div class="day-block open" data-day="0">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-num">TAG 01</span>
+        <span class="day-title">Profil & Unterlagen vorbereiten</span>
+        <span class="day-badge urgent">Heute</span>
+        <span class="day-chevron">▼</span>
+      </div>
+      <div class="day-body">
+        <ul class="task-list">
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">GitHub Profil aufräumen — README.md mit Kurzvorstellung</div>
+              <div class="task-note">Pinne deine 3 besten Repos oben an. Füge Beschreibungen und Topics hinzu.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">LinkedIn Profil aktualisieren — Profilbild, Headline, "Open to Work"</div>
+              <div class="task-note">Headline z.B.: "Junior Web Developer | React · Python · suche erste Stelle in DE"</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Lebenslauf (CV) auf Deutsch erstellen — 1 Seite, modernes Design</div>
+              <div class="task-note">Nutze Europass oder canva.com. Wichtig: Skills, Projekte, Sprachen (Deutsch-Level!)</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Alle aktuellen Projekte auf GitHub pushen — kein leeres Repo!</div>
+              <div class="task-note">README mit: Was ist es? Tech Stack. Screenshot/GIF. Live-Link wenn möglich.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Liste der Skills zusammenstellen (Tech Stack)</div>
+              <div class="task-note">z.B.: JavaScript, React, Node.js, Python, SQL, Git — ehrlich bleiben!</div>
+            </div>
+          </li>
+        </ul>
+        <div class="tip">
+          <strong>Tipp:</strong> Dein GitHub ist dein Portfolio. Recruiter schauen dort zuerst. Selbst kleine Projekte wirken professionell mit gutem README.
+        </div>
+      </div>
+    </div>
+
+    <!-- TAG 2 -->
+    <div class="day-block" data-day="1">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-num">TAG 02</span>
+        <span class="day-title">Bewerbung schreiben (Template)</span>
+        <span class="day-badge key">Wichtig</span>
+        <span class="day-chevron">▼</span>
+      </div>
+      <div class="day-body">
+        <ul class="task-list">
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Anschreiben (Bewerbungsschreiben) Template erstellen</div>
+              <div class="task-note">Auf Deutsch. Kurz: 3 Absätze. Warum du, warum die Firma, was du mitbringst.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Englisches Cover Letter Template erstellen</div>
+              <div class="task-note">Viele Startups in DE suchen auf Englisch. Beide Versionen bereithalten.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Kurzvorstellung (3-Satz "Pitch") formulieren</div>
+              <div class="task-note">Für E-Mails, LinkedIn-Nachrichten, Cold Outreach. Immer gleich, schnell einfügen.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Professionelle E-Mail-Adresse prüfen</div>
+              <div class="task-note">Format: vorname.nachname@gmail.com — keine coolen Nicknames!</div>
+            </div>
+          </li>
+        </ul>
+        <div class="tip">
+          <strong>Tipp:</strong> Schreib nie eine Bewerbung ohne den Firmennamen anzupassen. Copy-paste ohne Änderung wird direkt aussortiert.
+        </div>
+      </div>
+    </div>
+
+    <!-- TAG 3 -->
+    <div class="day-block" data-day="2">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-num">TAG 03</span>
+        <span class="day-title">Stellen suchen & Liste aufbauen</span>
+        <span class="day-badge key">Kernarbeit</span>
+        <span class="day-chevron">▼</span>
+      </div>
+      <div class="day-body">
+        <ul class="task-list">
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">LinkedIn Jobs: "Junior Developer Germany" — 20+ Stellen speichern</div>
+              <div class="task-note">Filter: Entry Level, letzte 7 Tage. Remote-freundliche Firmen bevorzugen.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Indeed.de / StepStone.de durchsuchen</div>
+              <div class="task-note">Suchbegriffe: "Junior Entwickler", "Junior Software Developer", "Werkstudent Entwicklung"</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Startups über German Startup Jobs & Jobspotting suchen</div>
+              <div class="task-note">jobs.lever.co, greenhouse.io — Startups haben lockerere Anforderungen für Juniors</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Tracking-Tabelle anlegen: Firma | Stelle | Status | Datum | Link</div>
+              <div class="task-note">Google Sheets reicht. Ohne Tracking verlierst du den Überblick.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Ziel: 15–20 Firmen auf der Liste bis Tagesende</div>
+              <div class="task-note">Qualität > Quantität, aber in 7 Tagen brauchen wir Volumen.</div>
+            </div>
+          </li>
+        </ul>
+        <div class="tip">
+          <strong>Tipp:</strong> Bewirb dich auch bei Firmen, die "Junior" nicht explizit schreiben. Viele nehmen gute Kandidaten auch ohne Erfahrung wenn Motivation stimmt.
+        </div>
+      </div>
+    </div>
+
+    <!-- TAG 4 -->
+    <div class="day-block" data-day="3">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-num">TAG 04</span>
+        <span class="day-title">Erste Bewerbungen rausschicken (10 Stück)</span>
+        <span class="day-badge urgent">Aktiv</span>
+        <span class="day-chevron">▼</span>
+      </div>
+      <div class="day-body">
+        <ul class="task-list">
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Top 10 Firmen aus Liste auswählen und Anschreiben anpassen</div>
+              <div class="task-note">Pro Firma: 5–10 Min Recherche. Was macht die Firma? Welche Technologien?</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Bewerbungen per E-Mail oder Bewerbungsportal einreichen</div>
+              <div class="task-note">Betreff: "Bewerbung als Junior Developer — [Dein Name]". Immer CV als PDF anhängen.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Auf LinkedIn direkt bei Recruitern bewerben (Easy Apply)</div>
+              <div class="task-note">Easy Apply + kurze persönliche Nachricht an den Recruiter erhöht Chancen.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Status in Tracking-Tabelle aktualisieren</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- TAG 5 -->
+    <div class="day-block" data-day="4">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-num">TAG 05</span>
+        <span class="day-title">Portfolio-Projekt vorzeigbar machen</span>
+        <span class="day-badge">Portfolio</span>
+        <span class="day-chevron">▼</span>
+      </div>
+      <div class="day-body">
+        <ul class="task-list">
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Aktuelles Hauptprojekt auf GitHub: sauberes README, Screenshots, Demo-Link</div>
+              <div class="task-note">Deploy auf Vercel / Netlify / Railway — kostenlos, 5 Minuten. Live-Demo > kein Demo.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Projektzusammenfassung schreiben: Was? Warum? Welche Probleme gelöst?</div>
+              <div class="task-note">Kannst du in 2 Minuten erklären was das Projekt macht? Dann ist es bereit.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">GitHub-Link in CV und Bewerbungsunterlagen einfügen</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Optionale einfache Portfolio-Webseite (1 Seite HTML reicht)</div>
+              <div class="task-note">Name, Skills, 2-3 Projekte, Kontakt. GitHub Pages = kostenlos hosten.</div>
+            </div>
+          </li>
+        </ul>
+        <div class="tip">
+          <strong>Tipp:</strong> Recruiter schauen sich selten den Code an — aber einen funktionierenden Live-Link klicken sie immer. Deploy > schöner Code.
+        </div>
+      </div>
+    </div>
+
+    <!-- TAG 6 -->
+    <div class="day-block" data-day="5">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-num">TAG 06</span>
+        <span class="day-title">Weitere 10 Bewerbungen + Networking</span>
+        <span class="day-badge urgent">Aktiv</span>
+        <span class="day-chevron">▼</span>
+      </div>
+      <div class="day-body">
+        <ul class="task-list">
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Zweite Runde Bewerbungen: 10 weitere Firmen</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">LinkedIn: 5–10 Recruiter/Hiring Manager anschreiben (kein Copy-Paste!)</div>
+              <div class="task-note">Kurz: "Ich bin Junior Dev, suche erste Stelle in DE, hier ist mein GitHub [link]"</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Tech-Communities beitreten: Dev.to, Discord-Server, lokale Dev-Gruppen Meetup.com</div>
+              <div class="task-note">Viele Jobs werden nie öffentlich ausgeschrieben — Netzwerk ist entscheidend.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Auf XING Profil anlegen — in DE noch relevant, besonders für traditionelle Firmen</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Vermittlungsagenturen kontaktieren: Hays, Gulp, Adecco IT</div>
+              <div class="task-note">Die suchen aktiv Kandidaten und schlagen dich Firmen vor. Kostenlos für dich.</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- TAG 7 -->
+    <div class="day-block" data-day="6">
+      <div class="day-header" onclick="toggleDay(this)">
+        <span class="day-num">TAG 07</span>
+        <span class="day-title">Follow-Up + Letzte Bewerbungen</span>
+        <span class="day-badge key">Final Push</span>
+        <span class="day-chevron">▼</span>
+      </div>
+      <div class="day-body">
+        <ul class="task-list">
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Follow-Up E-Mails an Bewerbungen von Tag 4 (wenn keine Antwort)</div>
+              <div class="task-note">"Ich wollte kurz nachfragen ob meine Bewerbung angekommen ist…" — höflich, kurz.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Letzte offene Bewerbungen aus der Liste rausschicken</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Interview-Vorbereitung beginnen: 5 typische Tech-Fragen üben</div>
+              <div class="task-note">Arrays, Loops, OOP Grundlagen, Git-Workflow, ein persönliches Projekt erklären können.</div>
+            </div>
+          </li>
+          <li class="task" onclick="toggleTask(this)">
+            <div class="task-check">✓</div>
+            <div>
+              <div class="task-text">Gesamtstatus prüfen: Wie viele Bewerbungen? Antworten? Interviews?</div>
+            </div>
+          </li>
+        </ul>
+        <div class="tip">
+          <strong>Reminder:</strong> 7 Tage sind eng. Ziel ist nicht der perfekte Job — Ziel ist <strong>ein Interview</strong>. Der Rest folgt.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /days-grid -->
+
+  <!-- TEMPLATES -->
+  <div class="section-title">// E-Mail Templates</div>
+
+  <div class="template-box">
+    <h3>📧 Bewerbung per E-Mail (Deutsch)</h3>
+    <pre id="tpl-de">Betreff: Bewerbung als Junior Softwareentwickler — [Dein Name]
+
+Sehr geehrte Damen und Herren,
+
+mit großem Interesse habe ich Ihre Stellenausschreibung für eine Junior-Entwicklerstelle gelesen. Als angehender Entwickler mit Kenntnissen in [Tech Stack, z.B. JavaScript/React/Python] bringe ich eine starke Lernbereitschaft und erste praktische Projekterfahrung mit.
+
+In meinen persönlichen Projekten habe ich [kurz: was du gebaut hast] umgesetzt. Meinen Code finden Sie auf GitHub: [github.com/deinname]
+
+Ich freue mich auf ein Gespräch und stehe ab sofort zur Verfügung.
+
+Mit freundlichen Grüßen
+[Dein Name]
+[Telefon] | [E-Mail] | [LinkedIn]</pre>
+    <button class="copy-btn" onclick="copyTemplate('tpl-de', this)">Kopieren</button>
+  </div>
+
+  <div class="template-box" style="margin-top:12px">
+    <h3>📧 Application E-Mail (English)</h3>
+    <pre id="tpl-en">Subject: Junior Developer Application — [Your Name]
+
+Hi [Name / Team],
+
+I came across your job posting and would love to join [Company] as a Junior Developer. I'm a self-driven developer with hands-on experience in [your stack] through personal and open-source projects.
+
+I recently built [short project description] — you can check it out here: [link or github.com/yourname]
+
+I'm based in / open to relocate to Germany and available immediately. Happy to jump on a quick call anytime.
+
+Best regards,
+[Your Name]
+[Phone] | [Email] | [LinkedIn]</pre>
+    <button class="copy-btn" onclick="copyTemplate('tpl-en', this)">Copy</button>
+  </div>
+
+  <div class="template-box" style="margin-top:12px">
+    <h3>💬 LinkedIn Cold Message (kurz)</h3>
+    <pre id="tpl-li">Hi [Name],
+
+ich bin Junior Developer (JS/React/[dein Stack]) und suche aktiv meine erste Stelle in Deutschland. Ich habe gesehen, dass [Firma] gerade nach Entwicklern sucht — wäre ein kurzes Gespräch möglich?
+
+Mein GitHub: github.com/[deinname]
+
+Danke & viele Grüße, [Name]</pre>
+    <button class="copy-btn" onclick="copyTemplate('tpl-li', this)">Kopieren</button>
+  </div>
+
+  <!-- RESOURCES -->
+  <div class="section-title">// Wichtige Links & Plattformen</div>
+  <div class="resources-grid">
+    <a class="resource-card" href="https://www.linkedin.com/jobs" target="_blank">
+      <div class="rc-label">Jobs</div>
+      <div class="rc-name">LinkedIn Jobs</div>
+      <div class="rc-desc">Filter: Entry Level · letzte 7 Tage · Deutschland</div>
+    </a>
+    <a class="resource-card" href="https://www.stepstone.de" target="_blank">
+      <div class="rc-label">Jobs</div>
+      <div class="rc-name">StepStone.de</div>
+      <div class="rc-desc">Größte deutsche Jobbörse. "Junior Entwickler" suchen.</div>
+    </a>
+    <a class="resource-card" href="https://www.indeed.de" target="_blank">
+      <div class="rc-label">Jobs</div>
+      <div class="rc-name">Indeed.de</div>
+      <div class="rc-desc">Breite Auswahl, auch kleinere Firmen.</div>
+    </a>
+    <a class="resource-card" href="https://startup.jobs" target="_blank">
+      <div class="rc-label">Startups</div>
+      <div class="rc-name">Startup.jobs</div>
+      <div class="rc-desc">Remote-first Startups weltweit, viele DE-Firmen dabei.</div>
+    </a>
+    <a class="resource-card" href="https://www.xing.com" target="_blank">
+      <div class="rc-label">Netzwerk</div>
+      <div class="rc-name">XING</div>
+      <div class="rc-desc">In DE noch stark. Besonders für traditionelle Unternehmen.</div>
+    </a>
+    <a class="resource-card" href="https://pages.github.com" target="_blank">
+      <div class="rc-label">Portfolio</div>
+      <div class="rc-name">GitHub Pages</div>
+      <div class="rc-desc">Kostenlose Portfolio-Seite in 10 Minuten deployen.</div>
+    </a>
+    <a class="resource-card" href="https://vercel.com" target="_blank">
+      <div class="rc-label">Deploy</div>
+      <div class="rc-name">Vercel</div>
+      <div class="rc-desc">Projekte sofort live stellen. Kostenlos für persönliche Projekte.</div>
+    </a>
+    <a class="resource-card" href="https://europass.europa.eu" target="_blank">
+      <div class="rc-label">Lebenslauf</div>
+      <div class="rc-name">Europass CV</div>
+      <div class="rc-desc">Standard-CV in Europa. Bekanntes Format für deutsche HR-Abteilungen.</div>
+    </a>
+  </div>
+
+  <footer>
+    <span>// Junior Dev Job Plan · 7 Tage</span>
+    <span id="footerProgress">0 Aufgaben erledigt</span>
+  </footer>
+
+</div>
+
+<script>
+  function toggleDay(header) {
+    const block = header.closest('.day-block');
+    block.classList.toggle('open');
+  }
+
+  function toggleTask(task) {
+    task.classList.toggle('checked');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const all = document.querySelectorAll('.task');
+    const done = document.querySelectorAll('.task.checked');
+    const pct = all.length ? (done.length / all.length) * 100 : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent = done.length + ' / ' + all.length;
+    document.getElementById('footerProgress').textContent = done.length + ' Aufgaben erledigt';
+  }
+
+  function copyTemplate(id, btn) {
+    const text = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Kopiert!';
+      btn.style.color = 'var(--accent)';
+      btn.style.borderColor = 'var(--accent)';
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 2000);
+    });
+  }
+
+  updateProgress();
+</script>
+</body>
+</html>
