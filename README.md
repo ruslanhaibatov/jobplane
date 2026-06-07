@@ -3,8 +3,7 @@
 
 ein strukturierter 7-tage-action-plan für junior developer in deutschland. dieses repository hilft dabei, die erste entwicklerstelle zu finden, bewerbungsunterlagen vorzubereiten und sich optimal auf interviews sowie den berufseinstieg vorzubereiten.
 
-<img width="1508" height="597" alt="image" src="https://github.com/user-attachments/assets/3768337c-af8e-4d6f-ab10-078787d5d79c" />
-
+<img width="1446" height="401" alt="image" src="https://github.com/user-attachments/assets/83676746-e314-45dc-9b0b-4b6a1125c330" />
 
 ## 📋 über das projekt
 
